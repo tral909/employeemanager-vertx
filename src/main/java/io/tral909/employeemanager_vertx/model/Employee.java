@@ -1,4 +1,4 @@
-package io.tral909.employeemanager_vertx;
+package io.tral909.employeemanager_vertx.model;
 
 import lombok.Data;
 

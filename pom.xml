@@ -21,8 +21,9 @@
         <lombok.version>1.18.20</lombok.version>
         <!-- Джексон датабиндер нужен для сериализации. Той же версии, которую тянет vertx-web -->
         <jackson.databind.version>2.11.4</jackson.databind.version>
+        <logback-classic.version>1.2.3</logback-classic.version>
 
-        <main.verticle>io.tral909.employeemanager_vertx.ApiVerticle</main.verticle>
+        <main.verticle>io.tral909.employeemanager_vertx.verticle.ApiVerticle</main.verticle>
         <launcher.class>io.vertx.core.Launcher</launcher.class>
     </properties>
 
@@ -74,6 +75,11 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.databind.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-classic.version}</version>
         </dependency>
     </dependencies>
 

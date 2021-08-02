@@ -1,15 +1,18 @@
-package io.tral909.employeemanager_vertx;
+package io.tral909.employeemanager_vertx.verticle;
 
+import io.tral909.employeemanager_vertx.model.Employee;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 public class ApiVerticle extends AbstractVerticle {
 
     private static final int API_PORT = 8888;
@@ -42,6 +45,9 @@ public class ApiVerticle extends AbstractVerticle {
                 List<Employee> employees = (List<Employee>) ar.result().body();
                 ctx.response()
                     .end(Json.encode(employees));
+            } else {
+                log.error("getEmployee api failed", ar.cause());
+                ctx.fail(500);
             }
         });
     }

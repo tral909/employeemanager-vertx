@@ -1,5 +1,6 @@
 package io.tral909.employeemanager_vertx;
 
+import io.tral909.employeemanager_vertx.verticle.ApiVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
