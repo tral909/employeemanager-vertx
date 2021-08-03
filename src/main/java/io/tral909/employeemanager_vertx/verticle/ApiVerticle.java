@@ -7,6 +7,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -23,9 +24,11 @@ public class ApiVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
         router.get("/employee").handler(this::getEmployee);
         router.get("/employee/:id").handler(this::getEmployeeById);
-        router.post("/employee").handler(this::addEmployee);
-        router.put("/employee").handler(this::updateEmployee);
+        router.post("/employee").handler(BodyHandler.create()).handler(this::addEmployee);
+        router.put("/employee").handler(BodyHandler.create()).handler(this::updateEmployee);
         router.delete("/employee/:id").handler(this::deleteEmployee);
+
+        router.errorHandler(500, ctx -> ctx.response().end("Sorry, not today!"));
 
         vertx.createHttpServer()
             .requestHandler(router)
@@ -43,8 +46,7 @@ public class ApiVerticle extends AbstractVerticle {
         vertx.eventBus().request("employee.get", null, ar -> {
             if (ar.succeeded()) {
                 List<Employee> employees = (List<Employee>) ar.result().body();
-                ctx.response()
-                    .end(Json.encode(employees));
+                ctx.response().end(Json.encode(employees));
             } else {
                 log.error("getEmployee api failed", ar.cause());
                 ctx.fail(500);
@@ -57,8 +59,11 @@ public class ApiVerticle extends AbstractVerticle {
         vertx.eventBus().request("employee.get.by.id", id, ar -> {
             if (ar.succeeded()) {
                 Employee employee = (Employee) ar.result().body();
-                ctx.response()
-                    .end(Json.encode(employee));
+                // вместо .response().end(Json.encode(pojo)) можно просто .json() с pojo
+                ctx.json(employee);
+            } else {
+                log.error("getEmployeeById api failed", ar.cause());
+                ctx.fail(500);
             }
         });
     }
@@ -68,29 +73,19 @@ public class ApiVerticle extends AbstractVerticle {
         Employee newEmployee = jsonRequest.mapTo(Employee.class);
         newEmployee.setCode(UUID.randomUUID().toString());
 
-        vertx.eventBus().request("employee.add", newEmployee, ar -> {
-            if (ar.succeeded()) {
-                Employee employee = (Employee) ar.result().body();
-                // вместо .response().end(Json.encode(pojo)) можно просто .json() с pojo
-                ctx.json(employee);
-            }
-        });
+        vertx.eventBus().request("employee.add", newEmployee);
     }
 
     private void updateEmployee(RoutingContext ctx) {
         JsonObject jsonRequest = ctx.getBodyAsJson();
         Employee updateEmployee = jsonRequest.mapTo(Employee.class);
 
-        vertx.eventBus().request("employee.update", updateEmployee, ar -> {
-            if (ar.succeeded()) {
-                Employee employee = (Employee) ar.result().body();
-                ctx.json(employee);
-            }
-        });
+        vertx.eventBus().request("employee.update", updateEmployee);
     }
 
     private void deleteEmployee(RoutingContext ctx) {
         int id = Integer.valueOf(ctx.request().getParam("id"));
         vertx.eventBus().send("employee.delete", id);
+        ctx.end();
     }
 }

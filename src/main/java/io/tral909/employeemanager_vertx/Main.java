@@ -13,8 +13,9 @@ public class Main {
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(new ApiVerticle());
         vertx.deployVerticle(new DatabaseVerticle());
+
+        // или по имени класса с опциями
         //vertx.deployVerticle("io.tral909.employeemanager_vertx.verticle.ApiVerticle", new DeploymentOptions().setInstances(1));
-        //vertx.deployVerticle("io.tral909.employeemanager_vertx.verticle.DatabaseVerticle", new DeploymentOptions().setInstances(1));
 
         // распределенные вертиклы (в кластере на разных нодах)
 //        Vertx.clusteredVertx(new VertxOptions())
