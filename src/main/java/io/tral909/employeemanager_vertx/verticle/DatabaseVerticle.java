@@ -95,9 +95,23 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private void updateEmployee(Message<Employee> msg) {
+        Employee e = msg.body();
+        String query = "UPDATE employee SET name = $2, email = $3, job_title = $4, "
+            + "phone = $5, image_url = $6, code = $7 WHERE id = $1";
+        Tuple tuple = Tuple.of(e.getId(), e.getName(), e.getEmail(), e.getJobTitle(), e.getPhone(), e.getImageUrl(), e.getCode());
+        pgPool.preparedQuery(query)
+            .execute(tuple)
+            .onSuccess(rows -> log.info("Update employee {}", tuple.deepToString()))
+            .onFailure(failure -> log.error("updateEmployee query failed", failure));
     }
 
     private void deleteEmployee(Message<Long> msg) {
+        Long id = msg.body();
+        String query = "DELETE FROM employee WHERE id = $1";
+        pgPool.preparedQuery(query)
+            .execute(Tuple.of(id))
+            .onSuccess(rows -> log.info("Delete employee with id={}", id))
+            .onFailure(failure -> log.error("deleteEmployee query failed", failure));
     }
 
     private Employee buildEmployee(Row row) {

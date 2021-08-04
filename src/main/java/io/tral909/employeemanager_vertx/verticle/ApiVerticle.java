@@ -55,7 +55,7 @@ public class ApiVerticle extends AbstractVerticle {
     }
 
     private void getEmployeeById(RoutingContext ctx) {
-        int id = Integer.valueOf(ctx.request().getParam("id"));
+        Long id = Long.valueOf(ctx.request().getParam("id"));
         vertx.eventBus().request("employee.get.by.id", id, ar -> {
             if (ar.succeeded()) {
                 Employee employee = (Employee) ar.result().body();
@@ -73,18 +73,20 @@ public class ApiVerticle extends AbstractVerticle {
         Employee newEmployee = jsonRequest.mapTo(Employee.class);
         newEmployee.setCode(UUID.randomUUID().toString());
 
-        vertx.eventBus().request("employee.add", newEmployee);
+        vertx.eventBus().send("employee.add", newEmployee);
+        ctx.end();
     }
 
     private void updateEmployee(RoutingContext ctx) {
         JsonObject jsonRequest = ctx.getBodyAsJson();
         Employee updateEmployee = jsonRequest.mapTo(Employee.class);
 
-        vertx.eventBus().request("employee.update", updateEmployee);
+        vertx.eventBus().send("employee.update", updateEmployee);
+        ctx.end();
     }
 
     private void deleteEmployee(RoutingContext ctx) {
-        int id = Integer.valueOf(ctx.request().getParam("id"));
+        Long id = Long.valueOf(ctx.request().getParam("id"));
         vertx.eventBus().send("employee.delete", id);
         ctx.end();
     }
