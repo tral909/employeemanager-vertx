@@ -28,7 +28,21 @@ public class ApiVerticle extends AbstractVerticle {
         router.put("/employee").handler(BodyHandler.create()).handler(this::updateEmployee);
         router.delete("/employee/:id").handler(this::deleteEmployee);
 
-        router.errorHandler(500, ctx -> ctx.response().end("Sorry, not today!"));
+        // так перекрываются все ctx.fail(500) вызовы c дефолтным Internal Server Error, не подходит
+        //router.errorHandler(500, ctx -> ctx.response().end("Sorry, not today!"));
+
+        // обработка исключений с прокидыванием сообщения на клиента
+        // todo добавить кастомные эксепшны https://github.com/vert-x3/vertx-web/issues/201
+        router.route().failureHandler(ctx -> {
+
+            JsonObject error = new JsonObject()
+                .put("timestamp", System.currentTimeMillis())
+                .put("exception", ctx.failure() != null ? ctx.failure().getClass().getName() : null)
+                .put("message", ctx.failure() != null ? ctx.failure().getMessage() : null)
+                .put("path", ctx.request().path());
+
+            ctx.response().setStatusCode(ctx.statusCode()).end(error.encode());
+        });
 
         vertx.createHttpServer()
             .requestHandler(router)
@@ -49,7 +63,7 @@ public class ApiVerticle extends AbstractVerticle {
                 ctx.response().end(Json.encode(employees));
             } else {
                 log.error("getEmployee api failed", ar.cause());
-                ctx.fail(500);
+                ctx.fail(500, ar.cause());
             }
         });
     }
@@ -63,7 +77,7 @@ public class ApiVerticle extends AbstractVerticle {
                 ctx.json(employee);
             } else {
                 log.error("getEmployeeById api failed", ar.cause());
-                ctx.fail(500);
+                ctx.fail(500, ar.cause());
             }
         });
     }
